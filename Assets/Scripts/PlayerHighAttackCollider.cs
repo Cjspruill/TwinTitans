@@ -27,13 +27,12 @@ public class PlayerHighAttackCollider : NetworkBehaviour
         if (IsServer && IsLocalPlayer)
         {
             boxCollider.enabled = false;
-            other.GetComponent<Target>().Popup(transform.up, power);
-
+            other.GetComponent<EnemyMovement>().DepleteHealth(damage);
         }
         else if (IsClient && IsLocalPlayer)
         {
             boxCollider.enabled = false;
-            other.GetComponent<Target>().PopupServerRpc(transform.up, power);
+            other.GetComponent<EnemyMovement>().DepleteHealthServerRpc(damage);
         }
     }
 }

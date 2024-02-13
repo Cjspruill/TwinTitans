@@ -24,7 +24,7 @@ public class PlayerNetwork : NetworkBehaviour
 
     [SerializeField] bool lockedOn;
     [SerializeField] Target[] targets;
-    [SerializeField] GameObject closestTarget;
+    [SerializeField]public GameObject closestTarget;
     [SerializeField] int targetIndex;
 
     [SerializeField] AudioListener audioListener;
@@ -32,13 +32,15 @@ public class PlayerNetwork : NetworkBehaviour
     [SerializeField] InputAction move;
     [SerializeField] InputAction attack;
     [SerializeField] InputAction grab;
-    [SerializeField] InputAction toggleTarget;
+    [SerializeField]public InputAction toggleTarget;
     [SerializeField] InputAction switchTarget;
 
     [SerializeField] float attackTimer;
     [SerializeField] bool comboActive;
     [SerializeField] float comboTime;
     [SerializeField] int comboIndex;
+
+    [SerializeField] EnemyMovement[] enemies;
     private void Awake()
     {
         playerControls = new PlayerInputActions();
@@ -68,8 +70,8 @@ public class PlayerNetwork : NetworkBehaviour
     public override void OnNetworkSpawn()
     {
         if (IsOwner)
-        {
-            audioListener.enabled = true;
+        {       
+            audioListener.enabled = true;           
         }
         else if (!IsOwner)
         {
@@ -78,11 +80,20 @@ public class PlayerNetwork : NetworkBehaviour
     }
 
     private void Start()
-    {
+    { 
         highAttackCollider.enabled = false;
         medAttackCollider.enabled = false;
         lowAttackCollider.enabled = false;
         characterController = GetComponent<CharacterController>();
+
+        enemies = FindObjectsOfType<EnemyMovement>();
+
+        for (int i = 0; i < enemies.Length; i++)
+        {
+            enemies[i].AddTargetObject(gameObject);
+            enemies[i].SetLockOn(true);
+        }
+        
     }
 
     void Update()
@@ -206,8 +217,9 @@ public class PlayerNetwork : NetworkBehaviour
         }
 
         if (lockedOn)
+        {
             if (targets != null)
-            {             
+            {
                 // Get the direction to the target
                 Vector3 directionToTarget = closestTarget.transform.position - transform.position;
 
@@ -217,6 +229,8 @@ public class PlayerNetwork : NetworkBehaviour
                 // Make the object look at the target
                 transform.rotation = Quaternion.LookRotation(directionToTarget);
             }
+
+        }
     }
 
     IEnumerator EnableLimb(GameObject limb)
@@ -226,7 +240,7 @@ public class PlayerNetwork : NetworkBehaviour
         limb.SetActive(false);
     }
 
-    GameObject FindClosestTarget()
+   public GameObject FindClosestTarget()
     {
         float distance = 100f;
         GameObject closestObject = null;
@@ -244,5 +258,8 @@ public class PlayerNetwork : NetworkBehaviour
         return closestObject;
     }
 
-
+    public void SetLockedOn(bool value)
+    {
+        lockedOn = value;
+    }
 }

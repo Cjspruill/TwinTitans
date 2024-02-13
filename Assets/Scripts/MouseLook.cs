@@ -15,7 +15,7 @@ public class MouseLook : NetworkBehaviour
     [SerializeField] private PlayerInputActions playerControls;
     [SerializeField] private InputAction look;
     [SerializeField] bool invert;
-    
+    [SerializeField] FaceCamera[] faceCameras;
 
     private void Awake()
     {
@@ -31,12 +31,19 @@ public class MouseLook : NetworkBehaviour
             invert = true;
             Debug.Log("Setting sensativity to " + sensitivity);
         }
-
-       
         
         look = playerControls.Player.Look;
         look.Enable();
     }
+
+    public override void OnNetworkSpawn()
+    {
+        for (int i = 0; i < faceCameras.Length; i++)
+        {
+            faceCameras[i].CameraToFace(GetComponent<Camera>());
+        }
+    }
+
     private void OnDisable()
     {
         look.Disable();
