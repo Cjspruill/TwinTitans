@@ -9,17 +9,21 @@ public class EnemyAttackCollider : NetworkBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        
+
     }
 
     // Update is called once per frame
     void Update()
     {
-        
+
     }
 
     private void OnTriggerEnter(Collider other)
     {
-        other.GetComponent<PlayerNetworkHealth>().DepleteHealth(damage);
+        if (IsServer)
+        {
+            if (other.GetComponent<PlayerNetworkHealth>() != null)
+                other.GetComponent<PlayerNetworkHealth>().DepleteHealthClientRpc(damage);
+        }
     }
 }

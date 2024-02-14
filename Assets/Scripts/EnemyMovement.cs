@@ -25,13 +25,21 @@ public class EnemyMovement : NetworkBehaviour
     [SerializeField] CharacterController characterController;
 
     [SerializeField] List<GameObject> targets;
-    [SerializeField] GameObject currentTarget;
-    [SerializeField] int targetIndex;
+    [SerializeField]  GameObject currentTarget;
+    [SerializeField] float targetTimer;
+    [SerializeField] float targetTime;
+    [SerializeField] float minTargetTime;
+    [SerializeField] float maxTargetTime;
+
+    [SerializeField] NetworkVariable<int> targetIndex = new NetworkVariable<int>();
     [SerializeField] bool lockedOn;
     [SerializeField] float speed = 2;
 
     [SerializeField] NetworkVariable<int> health = new NetworkVariable<int>();
     [SerializeField] Slider healthBar;
+    [SerializeField] RectTransform redBackGround;
+    [SerializeField] float backgroundNumber;
+    [SerializeField] float startingHealth;
 
     [SerializeField] BoxCollider attackCollider;
     [SerializeField] bool inCombat;
@@ -45,7 +53,9 @@ public class EnemyMovement : NetworkBehaviour
     [SerializeField] float maxAttackTime;
     [SerializeField] bool comboActive;
     [SerializeField] float comboTime;
-    [SerializeField] int comboIndex;
+    [SerializeField] NetworkVariable <int> comboIndex = new NetworkVariable<int>();
+
+
 
     [SerializeField] GameObject leftArm;
     [SerializeField] GameObject rightArm;
@@ -55,8 +65,10 @@ public class EnemyMovement : NetworkBehaviour
     {
         characterController = GetComponent<CharacterController>();
         attackCollider.enabled = false;
+
+        startingHealth = health.Value;
         healthBar.maxValue = health.Value;
-        healthBar.value = health.Value;
+        healthBar.value = health.Value;   
     }
 
     
@@ -78,6 +90,17 @@ public class EnemyMovement : NetworkBehaviour
         if(canMove)
         moveTimer += Time.deltaTime;
 
+        if(targets.Count != 1)
+        {
+            targetTimer += Time.deltaTime;
+            if (targetTimer>= targetTime)
+            {
+                ChangeTarget();
+            targetTimer = 0;
+            targetTime = Random.Range(minTargetTime, maxTargetTime);
+
+            }
+        }
 
         if (inCombat)
         {
@@ -86,10 +109,10 @@ public class EnemyMovement : NetworkBehaviour
             if (canAttack)
                 attackTimer += Time.deltaTime;
 
-            if (fullComboTimer >= comboTime || comboIndex >= 3)
+            if (fullComboTimer >= comboTime || comboIndex.Value >= 3)
             {
                 fullComboTimer = 0;
-                comboIndex = 0;
+                comboIndex.Value = 0;
                 comboActive = false;
             }
 
@@ -105,29 +128,29 @@ public class EnemyMovement : NetworkBehaviour
                 attack = false;
                 comboActive = true;
 
-                if (fullComboTimer >= comboTime || comboIndex >= 3)
+                if (fullComboTimer >= comboTime || comboIndex.Value >= 3)
                 {
                     fullComboTimer = 0;
-                    comboIndex = 0;
+                    comboIndex.Value= 0;
                     comboActive = false;
                 }
 
                 if (fullComboTimer <= comboTime)
-                    comboIndex++;
+                    comboIndex.Value++;
 
-                StartCoroutine(Attack());
+                AttackClientRpc();
 
-                if (comboIndex == 1)
+                if (comboIndex.Value == 1)
                 {
-                    StartCoroutine(EnableLimb(leftArm));
+                    EnableLeftArmClientRpc();
                 }
-                if (comboIndex == 2)
+                if (comboIndex.Value == 2)
                 {
-                    StartCoroutine(EnableLimb(rightArm));
+                    EnableRightArmClientRpc();
                 }
-                if (comboIndex == 3)
+                if (comboIndex.Value == 3)
                 {
-                    StartCoroutine(EnableLimb(rightLeg));
+                    EnableRightLegClientRpc();
                 }
             }
         }
@@ -207,12 +230,14 @@ public class EnemyMovement : NetworkBehaviour
 
     void ChangeTarget()
     {
-        targetIndex++;
+        if (!IsServer) return;
+
+        targetIndex.Value++;
        
-        if (targetIndex >= targets.Count)
-            targetIndex = 0;
+        if (targetIndex.Value >= targets.Count)
+            targetIndex.Value = 0;
         
-        currentTarget = targets[targetIndex];
+        currentTarget = targets[targetIndex.Value];
     }
 
     public void AddTargetObject(GameObject target)
@@ -283,29 +308,63 @@ public class EnemyMovement : NetworkBehaviour
       
     }
 
-    public void DepleteHealth(int value)
+    public void UpdateHealthBar()
     {
-        health.Value -= value;
-
         healthBar.value = health.Value;
-
-        if (health.Value <= 0)
-            OnNetworkDespawn();      
-        
-        currentMovement = Movement.Idle;
+        StartCoroutine(DepleteHealth(1, 1));
+        if (IsServer && health.Value <= 0)
+        {
+            NetworkObject.Despawn();
+        }
+        else if (IsClient && health.Value <= 0)
+        {
+            DespawnServerRpc();
+        }
     }
 
+    IEnumerator DepleteHealth(float y, float z)
+    {
+        float newValue = 1 / startingHealth;
+        Vector3 newScale = new Vector3(backgroundNumber, y, z);
+        redBackGround.transform.localScale = newScale;
+        yield return new WaitForSeconds(.5f);
+        backgroundNumber -= newValue;
+        Vector3 finalScale = new Vector3(backgroundNumber, y, z);
+        redBackGround.transform.localScale = finalScale;
+    }
+
+    [ServerRpc(RequireOwnership =false)]
+    void DespawnServerRpc()
+    {
+            NetworkObject.Despawn();
+    }
 
     [ServerRpc(RequireOwnership = false)]
     public void DepleteHealthServerRpc(int value)
     {
+        if (IsServer)
         health.Value -= value;
 
-        healthBar.value = health.Value;
+        if (health.Value <= 0)
+        {
+            TurnOffObject();
+        }
+
+        currentMovement = Movement.Idle;
+    }
+
+    [ClientRpc]
+    public void DepleteHealthClientRpc(int value)
+    {
+        if (IsServer)
+        health.Value -= value;
+
 
         if (health.Value <= 0)
-            OnNetworkDespawnServerRpc();
-        
+        {
+            TurnOffObject();
+        }
+
         currentMovement = Movement.Idle;
     }
 
@@ -326,12 +385,47 @@ public class EnemyMovement : NetworkBehaviour
         limb.SetActive(false);
     }
 
-    public override void OnNetworkDespawn()
+    [ClientRpc]
+    void EnableLeftArmClientRpc()
     {
-        gameObject.SetActive(false);
+        leftArm.SetActive(true);
+        Invoke("DisableLimbs", .15f);
     }
-    [ServerRpc(RequireOwnership =false)]
-    public void OnNetworkDespawnServerRpc()
+    [ClientRpc]
+    void EnableRightArmClientRpc()
+    {
+        rightArm.SetActive(true);
+        Invoke("DisableLimbs", .15f);
+    }
+    [ClientRpc]
+    void EnableRightLegClientRpc()
+    {
+        rightLeg.SetActive(true);
+        Invoke("DisableLimbs", .15f);
+    }
+
+    void DisableLimbs()
+    {
+        leftArm.SetActive(false);
+        rightArm.SetActive(false);
+        rightLeg.SetActive(false);
+    }
+
+    [ClientRpc]
+    void AttackClientRpc()
+    {
+        canAttack = false;
+        attackCollider.enabled = true;
+        Invoke("DisableAttackColliders", .15f);
+    }
+
+    void DisableAttackColliders()
+    {
+        attackCollider.enabled = false;
+        attack = false;
+        canAttack = true;
+    }
+    public void TurnOffObject()
     {
         gameObject.SetActive(false);
     }

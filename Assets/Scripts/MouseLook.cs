@@ -38,9 +38,13 @@ public class MouseLook : NetworkBehaviour
 
     public override void OnNetworkSpawn()
     {
-        for (int i = 0; i < faceCameras.Length; i++)
+        if (IsOwner)
         {
-            faceCameras[i].CameraToFace(GetComponent<Camera>());
+            faceCameras = FindObjectsOfType<FaceCamera>();
+            for (int i = 0; i < faceCameras.Length; i++)
+            {
+                faceCameras[i].CameraToFace(GetComponent<Camera>());
+            }
         }
     }
 
@@ -56,10 +60,8 @@ public class MouseLook : NetworkBehaviour
 
     void Update()
     {
-
         if (IsOwner)
             MoveCamera();
-
     }
 
     void MoveCamera()

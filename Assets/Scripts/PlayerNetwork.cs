@@ -47,7 +47,6 @@ public class PlayerNetwork : NetworkBehaviour
     }
     private void OnEnable()
     {
-    
         move = playerControls.Player.Move;
         attack = playerControls.Player.Attack;
         grab = playerControls.Player.Grab;
@@ -76,6 +75,13 @@ public class PlayerNetwork : NetworkBehaviour
         else if (!IsOwner)
         {
             camera.gameObject.SetActive(false);
+        }
+
+        enemies = FindObjectsOfType<EnemyMovement>();
+
+        for (int i = 0; i < enemies.Length; i++)
+        {
+            enemies[i].UpdateHealthBar();
         }
     }
 
@@ -131,9 +137,7 @@ public class PlayerNetwork : NetworkBehaviour
             Vector3 moveDir = Quaternion.Euler(0f, targetAngle, 0f) * Vector3.forward;
             moveDir += Physics.gravity;
             characterController.Move(moveDir.normalized * speed * Time.deltaTime);
-        }
-
-        
+        }    
     }
 
     void AllowAttacks()
@@ -177,16 +181,16 @@ public class PlayerNetwork : NetworkBehaviour
         }
 
         if (move.WasPressedThisFrame() && attack.WasPressedThisFrame())
-        {
-            StartCoroutine(EnableCollider(highAttackCollider));
+        { 
+           StartCoroutine(EnableCollider(highAttackCollider));
         }
         else if (move.WasPressedThisFrame() && attack.WasPressedThisFrame())
         {
-            StartCoroutine(EnableCollider(lowAttackCollider));
+           StartCoroutine(EnableCollider(lowAttackCollider));
         }
         else if (attack.WasPressedThisFrame())
         {
-            StartCoroutine(EnableCollider(medAttackCollider));
+          StartCoroutine(EnableCollider(medAttackCollider));
         }
 
 

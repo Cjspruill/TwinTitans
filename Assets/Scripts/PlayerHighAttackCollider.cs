@@ -26,13 +26,18 @@ public class PlayerHighAttackCollider : NetworkBehaviour
     {
         if (IsServer && IsLocalPlayer)
         {
-            boxCollider.enabled = false;
-            other.GetComponent<EnemyMovement>().DepleteHealth(damage);
+            Debug.Log("Server side fired");
+            if (other.GetComponent<EnemyMovement>() != null)
+                other.GetComponent<EnemyMovement>().DepleteHealthClientRpc(damage);
         }
         else if (IsClient && IsLocalPlayer)
         {
-            boxCollider.enabled = false;
-            other.GetComponent<EnemyMovement>().DepleteHealthServerRpc(damage);
+            Debug.Log("Client side fired");
+            if (other.GetComponent<EnemyMovement>() != null)
+                other.GetComponent<EnemyMovement>().DepleteHealthServerRpc(damage);
         }
+
+        if(other.GetComponent<EnemyMovement>()!=null)
+        other.GetComponent<EnemyMovement>().UpdateHealthBar();
     }
 }

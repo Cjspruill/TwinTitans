@@ -25,15 +25,15 @@ public class PlayerMidAttackCollider : NetworkBehaviour
     {
         if (IsServer && IsLocalPlayer)
         {
-            boxCollider.enabled = false;
-            other.GetComponent<EnemyMovement>().DepleteHealth(damage);
-            //  other.GetComponent<Target>().KnockBack(transform.forward, power);
+            if (other.GetComponent<EnemyMovement>() != null)
+                other.GetComponent<EnemyMovement>().DepleteHealthClientRpc(damage);
         }
         else if (IsClient && IsLocalPlayer)
         {
-            boxCollider.enabled = false;
-            other.GetComponent<EnemyMovement>().DepleteHealthServerRpc(damage);
-            //other.GetComponent<Target>().KnockBackServerRpc(transform.forward, power);
+            if (other.GetComponent<EnemyMovement>() != null)
+                other.GetComponent<EnemyMovement>().DepleteHealthServerRpc(damage);
         }
+        if(other.GetComponent<EnemyMovement>()!=null)
+        other.GetComponent<EnemyMovement>().UpdateHealthBar();
     }
 }
