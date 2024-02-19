@@ -8,7 +8,7 @@ public class HealthBarPlayer : NetworkBehaviour
 {
     [SerializeField] PlayerHealth playerHealth;
     [SerializeField] Image healthBar;
-    [SerializeField] Image redBackGround;
+    [SerializeField] Image redBackground;
 
     public override void OnNetworkSpawn()
     {
@@ -34,6 +34,6 @@ public class HealthBarPlayer : NetworkBehaviour
     {
         yield return new WaitForSeconds(.5f);
         float newValue = (float)1 / playerHealth.MaxHealth;
-        redBackGround.fillAmount -= newValue;
+        redBackground.fillAmount -= newValue;
     }
 }

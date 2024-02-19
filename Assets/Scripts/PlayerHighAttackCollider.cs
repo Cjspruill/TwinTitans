@@ -7,6 +7,7 @@ public class PlayerHighAttackCollider : NetworkBehaviour
 {
 
     [SerializeField] BoxCollider boxCollider;
+    [SerializeField] private PlayerEnergy playerEnergy;
     [SerializeField] int damage;
     [SerializeField] int power = 1;
     [SerializeField] Rigidbody rb;
@@ -22,11 +23,13 @@ public class PlayerHighAttackCollider : NetworkBehaviour
         {
             if (other.GetComponent<EnemyHealth>() != null)
                 other.GetComponent<EnemyHealth>().TakeDamage(damage);
+            playerEnergy.IncreaseEnergy(1);
         }
         else if (IsClient && IsLocalPlayer)
         {
             if (other.GetComponent<EnemyHealth>() != null)
                 other.GetComponent<EnemyHealth>().TakeDamageServerRpc(damage);
+            playerEnergy.IncreaseEnergyServerRpc(1);
         }
     }
 }

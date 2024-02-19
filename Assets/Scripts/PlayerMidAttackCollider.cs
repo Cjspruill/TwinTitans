@@ -6,6 +6,7 @@ using Unity.Netcode;
 public class PlayerMidAttackCollider : NetworkBehaviour
 {
     [SerializeField] BoxCollider boxCollider;
+    [SerializeField] PlayerEnergy playerEnergy;
     [SerializeField] int damage;
     [SerializeField] int power = 1;
     [SerializeField] Rigidbody rb;
@@ -28,6 +29,7 @@ public class PlayerMidAttackCollider : NetworkBehaviour
             if (other.GetComponent<EnemyHealth>() != null)
             {
                 other.GetComponent<EnemyHealth>().TakeDamage(damage);
+                playerEnergy.IncreaseEnergy(1);
             }
         }
         else if (IsClient && IsLocalPlayer)
@@ -35,8 +37,8 @@ public class PlayerMidAttackCollider : NetworkBehaviour
             if (other.GetComponent<EnemyHealth>() != null)
             {
                 other.GetComponent<EnemyHealth>().TakeDamageServerRpc(damage);
+                playerEnergy.IncreaseEnergyServerRpc(1);
             }
         }
-
     }
 }

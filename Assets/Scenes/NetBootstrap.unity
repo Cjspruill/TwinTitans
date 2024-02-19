@@ -289,9 +289,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   playerCharacter: 
   playerChar: 0
-  gabrielNetworkPlayer: {fileID: 0}
-  khafreNetworkPlayer: {fileID: 0}
-  enemyPrefab: {fileID: 0}
+  gabrielNetworkPlayer: {fileID: 5330613553236219695, guid: ad27045e052ecfe49926e4ac1300d074, type: 3}
+  khafreNetworkPlayer: {fileID: 5330613553236219695, guid: af234f872ee8eb643b08af98bd143d44, type: 3}
+  enemyPrefab: {fileID: 9147568737756869487, guid: 67e37a3e92bef6945a5042cb1b9ae2cc, type: 3}
   countDownTimer: 0
   readyTime: 0
 --- !u!4 &735728866

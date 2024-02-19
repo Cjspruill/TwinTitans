@@ -40,12 +40,12 @@ public class EnemyHealth : NetworkBehaviour
         {
             OnDie?.Invoke(this);
             isDead = true;
+            Destroy(gameObject); 
         }
     }
     [ServerRpc(RequireOwnership =false)]
     public void TakeDamageServerRpc(int damageValue)
     {
-
         ModifyHealth(-damageValue);
     }
 }

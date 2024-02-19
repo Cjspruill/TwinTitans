@@ -35,15 +35,20 @@ public class PlayerNetwork : NetworkBehaviour
     [SerializeField] InputAction grab;
     [SerializeField]public InputAction toggleTarget;
     [SerializeField] InputAction switchTarget;
+    [SerializeField] InputAction evade;
 
     [SerializeField] float attackTimer;
     [SerializeField] bool comboActive;
     [SerializeField] float comboTime;
     [SerializeField] int comboIndex;
 
+    [SerializeField] float evadeDistance;
+
     [SerializeField] EnemyMovement[] enemies;
 
     public NetworkVariable<FixedString32Bytes> PlayerName = new NetworkVariable<FixedString32Bytes>();
+
+
     private void Awake()
     {
         playerControls = new PlayerInputActions();
@@ -55,11 +60,13 @@ public class PlayerNetwork : NetworkBehaviour
         grab = playerControls.Player.Grab;
         toggleTarget = playerControls.Player.ToggleTarget;
         switchTarget = playerControls.Player.SwitchTarget;
+        evade = playerControls.Player.Evade;
         move.Enable();
         attack.Enable();
         grab.Enable();
         toggleTarget.Enable();
         switchTarget.Enable();
+        evade.Enable();
     }
     private void OnDisable()
     {
@@ -68,6 +75,7 @@ public class PlayerNetwork : NetworkBehaviour
         grab.Disable();
         toggleTarget.Disable();
         switchTarget.Disable();
+        evade.Disable();
     }
     public override void OnNetworkSpawn()
     {
@@ -78,7 +86,7 @@ public class PlayerNetwork : NetworkBehaviour
         }
 
         if (IsOwner)
-        {       
+        {
             audioListener.enabled = true;
 
             highAttackCollider.enabled = false;
@@ -86,25 +94,33 @@ public class PlayerNetwork : NetworkBehaviour
             lowAttackCollider.enabled = false;
             characterController = GetComponent<CharacterController>();
 
-            enemies = FindObjectsOfType<EnemyMovement>();
-
-            for (int i = 0; i < enemies.Length; i++)
-            {
-                enemies[i].AddTargetObject(gameObject);
-                enemies[i].SetLockOn(true);
-            }
-
+          
         }
         else if (!IsOwner)
         {
             camera.gameObject.SetActive(false);
         }
 
+
+        Invoke("RunSetup", 1f);  
+    }
+
+    void RunSetup()
+    {
         enemies = FindObjectsOfType<EnemyMovement>();
 
         for (int i = 0; i < enemies.Length; i++)
         {
-        //    enemies[i].UpdateHealthBar();
+            enemies[i].AddTargetObject(gameObject);
+            enemies[i].SetLockOn(true);
+        }
+
+
+        enemies = FindObjectsOfType<EnemyMovement>();
+
+        for (int i = 0; i < enemies.Length; i++)
+        {
+            //    enemies[i].UpdateHealthBar();
         }
     }
 
@@ -114,6 +130,7 @@ public class PlayerNetwork : NetworkBehaviour
         {
             MovePlayer();
             AllowAttacks();
+            AllowEvades();
         }
     }
 
@@ -186,7 +203,7 @@ public class PlayerNetwork : NetworkBehaviour
             }
         }
 
-        if (move.WasPressedThisFrame() && attack.WasPressedThisFrame())
+        if (move.ReadValue<Vector2>().y > .1f && attack.WasPressedThisFrame())
         { 
            StartCoroutine(EnableCollider(highAttackCollider));
         }
@@ -240,6 +257,107 @@ public class PlayerNetwork : NetworkBehaviour
                 transform.rotation = Quaternion.LookRotation(directionToTarget);
             }
 
+        }
+    }
+
+    void AllowEvades()
+    {
+        if(move.ReadValue<Vector2>().y > .1f && evade.WasPressedThisFrame())
+        {
+            EvadeForward();
+        }
+       else if (move.ReadValue<Vector2>().y < -.1f && evade.WasPressedThisFrame())
+        {
+            EvadeBack();
+        }
+        else if(move.ReadValue<Vector2>().x < -.1f && evade.WasPressedThisFrame())
+        {
+            Debug.Log("Left evade");
+            EvadeLeft();
+        }
+        else if(move.ReadValue<Vector2>().x > .1f && evade.WasPressedThisFrame())
+        {
+            Debug.Log("Right evade");
+            EvadeRight();
+        }
+        else if (evade.WasPressedThisFrame())
+        {
+            EvadeBackNeutral();
+        }
+    }
+
+    void EvadeForward()
+    {
+        float vertical = move.ReadValue<Vector2>().y; //Input.GetAxisRaw("Vertical");
+        Vector3 direction = new Vector3(0f, 0f, vertical).normalized;
+
+        // Rotate movement direction based on camera
+        if (direction.magnitude >= 0.1f)
+        {
+        Debug.Log("Evaded forward"); 
+            float targetAngle = Mathf.Atan2(direction.x, direction.z) * Mathf.Rad2Deg + camera.eulerAngles.y;
+            float angle = Mathf.SmoothDampAngle(transform.eulerAngles.y, targetAngle, ref turnSmoothVelocity, turnSmoothTime);
+
+            Vector3 moveDir = Quaternion.Euler(0f, targetAngle, 0f) * Vector3.forward;
+            moveDir += Physics.gravity;
+            characterController.Move(moveDir.normalized * evadeDistance * speed * Time.deltaTime);
+        }
+    }
+
+    void EvadeBack()
+    {
+        float vertical = move.ReadValue<Vector2>().y; //Input.GetAxisRaw("Vertical");
+        Vector3 direction = new Vector3(0f, 0f, vertical).normalized;
+
+        // Rotate movement direction based on camera
+        if (direction.magnitude >= 0.1f)
+        {
+            Debug.Log("Evaded Back");
+   
+            Vector3 moveDir = -transform.forward;
+            moveDir += Physics.gravity;
+            characterController.Move(moveDir.normalized * evadeDistance * speed * Time.deltaTime);
+        }
+    }
+
+    void EvadeBackNeutral()
+    {
+        Debug.Log("Evaded Back");
+
+        Vector3 moveDir = -transform.forward;
+        moveDir += Physics.gravity;
+        characterController.Move(moveDir.normalized * evadeDistance * speed * Time.deltaTime);
+    }
+
+    void EvadeLeft()
+    {
+        float horizontal = move.ReadValue<Vector2>().x; //Input.GetAxisRaw("Vertical");
+        Vector3 direction = new Vector3(horizontal, 0f, 0f).normalized;
+
+        // Rotate movement direction based on camera
+        if (direction.magnitude >= 0.1f)
+        {
+            Debug.Log("Evaded Left");
+
+            Vector3 moveDir = -transform.right;
+            moveDir += Physics.gravity;
+            characterController.Move(moveDir.normalized * evadeDistance * speed * Time.deltaTime);
+        }
+    }
+
+    void EvadeRight()
+    {
+        float horizontal = move.ReadValue<Vector2>().x; //Input.GetAxisRaw("Vertical");
+        Vector3 direction = new Vector3(horizontal, 0f,0f).normalized;
+
+        // Rotate movement direction based on camera
+        if (direction.magnitude >= 0.1f)
+        {
+            Debug.Log("Evaded Right");
+
+            Vector3 moveDir = transform.right;
+            moveDir += Physics.gravity;
+            characterController.Move(moveDir.normalized * evadeDistance * speed * Time.deltaTime);
         }
     }
 
