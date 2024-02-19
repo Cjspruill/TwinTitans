@@ -24,16 +24,19 @@ public class PlayerMidAttackCollider : NetworkBehaviour
     private void OnTriggerEnter(Collider other)
     {
         if (IsServer && IsLocalPlayer)
-        {
-            if (other.GetComponent<EnemyMovement>() != null)
-                other.GetComponent<EnemyMovement>().DepleteHealthClientRpc(damage);
+        { 
+            if (other.GetComponent<EnemyHealth>() != null)
+            {
+                other.GetComponent<EnemyHealth>().TakeDamage(damage);
+            }
         }
         else if (IsClient && IsLocalPlayer)
         {
-            if (other.GetComponent<EnemyMovement>() != null)
-                other.GetComponent<EnemyMovement>().DepleteHealthServerRpc(damage);
+            if (other.GetComponent<EnemyHealth>() != null)
+            {
+                other.GetComponent<EnemyHealth>().TakeDamageServerRpc(damage);
+            }
         }
-        if(other.GetComponent<EnemyMovement>()!=null)
-        other.GetComponent<EnemyMovement>().UpdateHealthBar();
+
     }
 }

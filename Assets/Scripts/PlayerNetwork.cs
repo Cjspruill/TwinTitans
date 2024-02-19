@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Unity.Netcode;
 using UnityEngine.InputSystem;
+using Unity.Collections;
 
 public class PlayerNetwork : NetworkBehaviour
 {
@@ -41,6 +42,8 @@ public class PlayerNetwork : NetworkBehaviour
     [SerializeField] int comboIndex;
 
     [SerializeField] EnemyMovement[] enemies;
+
+    public NetworkVariable<FixedString32Bytes> PlayerName = new NetworkVariable<FixedString32Bytes>();
     private void Awake()
     {
         playerControls = new PlayerInputActions();
@@ -68,9 +71,29 @@ public class PlayerNetwork : NetworkBehaviour
     }
     public override void OnNetworkSpawn()
     {
+        if (IsServer)
+        {
+            UserData userData = HostSingleton.Instance.GameManger.NetworkServer.GetUserDataByClientID(OwnerClientId);
+            PlayerName.Value = userData.userName;
+        }
+
         if (IsOwner)
         {       
-            audioListener.enabled = true;           
+            audioListener.enabled = true;
+
+            highAttackCollider.enabled = false;
+            medAttackCollider.enabled = false;
+            lowAttackCollider.enabled = false;
+            characterController = GetComponent<CharacterController>();
+
+            enemies = FindObjectsOfType<EnemyMovement>();
+
+            for (int i = 0; i < enemies.Length; i++)
+            {
+                enemies[i].AddTargetObject(gameObject);
+                enemies[i].SetLockOn(true);
+            }
+
         }
         else if (!IsOwner)
         {
@@ -81,30 +104,13 @@ public class PlayerNetwork : NetworkBehaviour
 
         for (int i = 0; i < enemies.Length; i++)
         {
-            enemies[i].UpdateHealthBar();
+        //    enemies[i].UpdateHealthBar();
         }
-    }
-
-    private void Start()
-    { 
-        highAttackCollider.enabled = false;
-        medAttackCollider.enabled = false;
-        lowAttackCollider.enabled = false;
-        characterController = GetComponent<CharacterController>();
-
-        enemies = FindObjectsOfType<EnemyMovement>();
-
-        for (int i = 0; i < enemies.Length; i++)
-        {
-            enemies[i].AddTargetObject(gameObject);
-            enemies[i].SetLockOn(true);
-        }
-        
     }
 
     void Update()
     {
-        if (IsOwner)
+        if (IsLocalPlayer)
         {
             MovePlayer();
             AllowAttacks();

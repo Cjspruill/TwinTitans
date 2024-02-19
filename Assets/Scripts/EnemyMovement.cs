@@ -32,14 +32,9 @@ public class EnemyMovement : NetworkBehaviour
     [SerializeField] float maxTargetTime;
 
     [SerializeField] NetworkVariable<int> targetIndex = new NetworkVariable<int>();
+
     [SerializeField] bool lockedOn;
     [SerializeField] float speed = 2;
-
-    [SerializeField] NetworkVariable<int> health = new NetworkVariable<int>();
-    [SerializeField] Slider healthBar;
-    [SerializeField] RectTransform redBackGround;
-    [SerializeField] float backgroundNumber;
-    [SerializeField] float startingHealth;
 
     [SerializeField] BoxCollider attackCollider;
     [SerializeField] bool inCombat;
@@ -55,20 +50,14 @@ public class EnemyMovement : NetworkBehaviour
     [SerializeField] float comboTime;
     [SerializeField] NetworkVariable <int> comboIndex = new NetworkVariable<int>();
 
-
-
     [SerializeField] GameObject leftArm;
     [SerializeField] GameObject rightArm;
     [SerializeField] GameObject rightLeg;
     // Start is called before the first frame update
-    void Start()
-    {
+   public override void OnNetworkSpawn()
+    {  
         characterController = GetComponent<CharacterController>();
-        attackCollider.enabled = false;
-
-        startingHealth = health.Value;
-        healthBar.maxValue = health.Value;
-        healthBar.value = health.Value;   
+        attackCollider.enabled = false; 
     }
 
     
@@ -76,7 +65,7 @@ public class EnemyMovement : NetworkBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (IsServer)
+        if (IsServer && !IsLocalPlayer)
         {
             if (currentTarget == null)
                 return;
@@ -308,64 +297,11 @@ public class EnemyMovement : NetworkBehaviour
       
     }
 
-    public void UpdateHealthBar()
-    {
-        healthBar.value = health.Value;
-        StartCoroutine(DepleteHealth(1, 1));
-        if (IsServer && health.Value <= 0)
-        {
-            NetworkObject.Despawn();
-        }
-        else if (IsClient && health.Value <= 0)
-        {
-            DespawnServerRpc();
-        }
-    }
-
-    IEnumerator DepleteHealth(float y, float z)
-    {
-        float newValue = 1 / startingHealth;
-        Vector3 newScale = new Vector3(backgroundNumber, y, z);
-        redBackGround.transform.localScale = newScale;
-        yield return new WaitForSeconds(.5f);
-        backgroundNumber -= newValue;
-        Vector3 finalScale = new Vector3(backgroundNumber, y, z);
-        redBackGround.transform.localScale = finalScale;
-    }
 
     [ServerRpc(RequireOwnership =false)]
     void DespawnServerRpc()
-    {
-            NetworkObject.Despawn();
-    }
-
-    [ServerRpc(RequireOwnership = false)]
-    public void DepleteHealthServerRpc(int value)
-    {
-        if (IsServer)
-        health.Value -= value;
-
-        if (health.Value <= 0)
-        {
-            TurnOffObject();
-        }
-
-        currentMovement = Movement.Idle;
-    }
-
-    [ClientRpc]
-    public void DepleteHealthClientRpc(int value)
-    {
-        if (IsServer)
-        health.Value -= value;
-
-
-        if (health.Value <= 0)
-        {
-            TurnOffObject();
-        }
-
-        currentMovement = Movement.Idle;
+    {          
+        NetworkObject.Despawn();
     }
 
     IEnumerator Attack()
@@ -428,5 +364,6 @@ public class EnemyMovement : NetworkBehaviour
     public void TurnOffObject()
     {
         gameObject.SetActive(false);
+        StopAllCoroutines();
     }
 }

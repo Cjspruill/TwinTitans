@@ -22,8 +22,9 @@ public class EnemyAttackCollider : NetworkBehaviour
     {
         if (IsServer)
         {
-            if (other.GetComponent<PlayerNetworkHealth>() != null)
-                other.GetComponent<PlayerNetworkHealth>().DepleteHealthClientRpc(damage);
+            if (other.GetComponent<PlayerHealth>() != null)
+                other.GetComponent<PlayerHealth>().TakeDamage(damage);
+
         }
     }
 }

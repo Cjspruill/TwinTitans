@@ -16,28 +16,17 @@ public class PlayerHighAttackCollider : NetworkBehaviour
         boxCollider = GetComponent<BoxCollider>();
     }
 
-    // Update is called once per frame
-    void Update()
-    {
-
-    }
-
     private void OnTriggerEnter(Collider other)
     {
         if (IsServer && IsLocalPlayer)
         {
-            Debug.Log("Server side fired");
-            if (other.GetComponent<EnemyMovement>() != null)
-                other.GetComponent<EnemyMovement>().DepleteHealthClientRpc(damage);
+            if (other.GetComponent<EnemyHealth>() != null)
+                other.GetComponent<EnemyHealth>().TakeDamage(damage);
         }
         else if (IsClient && IsLocalPlayer)
         {
-            Debug.Log("Client side fired");
-            if (other.GetComponent<EnemyMovement>() != null)
-                other.GetComponent<EnemyMovement>().DepleteHealthServerRpc(damage);
+            if (other.GetComponent<EnemyHealth>() != null)
+                other.GetComponent<EnemyHealth>().TakeDamageServerRpc(damage);
         }
-
-        if(other.GetComponent<EnemyMovement>()!=null)
-        other.GetComponent<EnemyMovement>().UpdateHealthBar();
     }
 }

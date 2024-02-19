@@ -38,6 +38,12 @@ public class MouseLook : NetworkBehaviour
 
     public override void OnNetworkSpawn()
     {
+
+        Invoke("FaceCamera", 1f);
+    }
+
+    void FaceCamera()
+    {
         if (IsOwner)
         {
             faceCameras = FindObjectsOfType<FaceCamera>();
@@ -46,6 +52,7 @@ public class MouseLook : NetworkBehaviour
                 faceCameras[i].CameraToFace(GetComponent<Camera>());
             }
         }
+
     }
 
     private void OnDisable()
