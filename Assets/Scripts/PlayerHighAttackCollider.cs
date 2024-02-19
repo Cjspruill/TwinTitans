@@ -23,6 +23,8 @@ public class PlayerHighAttackCollider : NetworkBehaviour
         {
             if (other.GetComponent<EnemyHealth>() != null)
                 other.GetComponent<EnemyHealth>().TakeDamage(damage);
+            if (other.GetComponent<EnemyMovement>() != null)
+                other.GetComponent<EnemyMovement>().Popup(power);
             playerEnergy.IncreaseEnergy(1);
         }
         else if (IsClient && IsLocalPlayer)

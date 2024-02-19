@@ -196,7 +196,7 @@ MonoBehaviour:
   boxCollider: {fileID: 0}
   playerEnergy: {fileID: 5417113676798447251}
   damage: 1
-  power: 3
+  power: 5
   rb: {fileID: 0}
 --- !u!1 &1078591076934480201
 GameObject:
@@ -920,7 +920,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   player: {fileID: 2179233040785664839}
-  sensitivity: 0.05
+  sensitivity: 0.1
   maxYAngle: 80
   look:
     m_Name: Look
@@ -1832,7 +1832,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  GlobalObjectIdHash: 3342531999
+  GlobalObjectIdHash: 1168160594
   AlwaysReplicateAsRoot: 0
   SynchronizeTransform: 1
   ActiveSceneSynchronization: 0

@@ -25,7 +25,7 @@ public class EnemyMovement : NetworkBehaviour
     [SerializeField] CharacterController characterController;
 
     [SerializeField] List<GameObject> targets;
-    [SerializeField]  GameObject currentTarget;
+    [SerializeField] GameObject currentTarget;
     [SerializeField] float targetTimer;
     [SerializeField] float targetTime;
     [SerializeField] float minTargetTime;
@@ -48,19 +48,19 @@ public class EnemyMovement : NetworkBehaviour
     [SerializeField] float maxAttackTime;
     [SerializeField] bool comboActive;
     [SerializeField] float comboTime;
-    [SerializeField] NetworkVariable <int> comboIndex = new NetworkVariable<int>();
+    [SerializeField] NetworkVariable<int> comboIndex = new NetworkVariable<int>();
 
     [SerializeField] GameObject leftArm;
     [SerializeField] GameObject rightArm;
     [SerializeField] GameObject rightLeg;
     // Start is called before the first frame update
-   public override void OnNetworkSpawn()
-    {  
+    public override void OnNetworkSpawn()
+    {
         characterController = GetComponent<CharacterController>();
-        attackCollider.enabled = false; 
+        attackCollider.enabled = false;
     }
 
-    
+
 
     // Update is called once per frame
     void Update()
@@ -76,17 +76,17 @@ public class EnemyMovement : NetworkBehaviour
 
     void MoveEnemy()
     {
-        if(canMove)
-        moveTimer += Time.deltaTime;
+        if (canMove)
+            moveTimer += Time.deltaTime;
 
-        if(targets.Count != 1)
+        if (targets.Count != 1)
         {
             targetTimer += Time.deltaTime;
-            if (targetTimer>= targetTime)
+            if (targetTimer >= targetTime)
             {
                 ChangeTarget();
-            targetTimer = 0;
-            targetTime = Random.Range(minTargetTime, maxTargetTime);
+                targetTimer = 0;
+                targetTime = Random.Range(minTargetTime, maxTargetTime);
 
             }
         }
@@ -120,7 +120,7 @@ public class EnemyMovement : NetworkBehaviour
                 if (fullComboTimer >= comboTime || comboIndex.Value >= 3)
                 {
                     fullComboTimer = 0;
-                    comboIndex.Value= 0;
+                    comboIndex.Value = 0;
                     comboActive = false;
                 }
 
@@ -148,7 +148,7 @@ public class EnemyMovement : NetworkBehaviour
 
         }
 
-        if(moveTimer > moveTime)
+        if (moveTimer > moveTime)
         {
             moveTimer = 0;
             moveTime = Random.Range(minMoveTime, maxMoveTime);
@@ -194,7 +194,7 @@ public class EnemyMovement : NetworkBehaviour
             default:
                 break;
         }
-    
+
 
         if (lockedOn)
         {
@@ -222,10 +222,10 @@ public class EnemyMovement : NetworkBehaviour
         if (!IsServer) return;
 
         targetIndex.Value++;
-       
+
         if (targetIndex.Value >= targets.Count)
             targetIndex.Value = 0;
-        
+
         currentTarget = targets[targetIndex.Value];
     }
 
@@ -271,7 +271,7 @@ public class EnemyMovement : NetworkBehaviour
         direction += Physics.gravity;
         characterController.Move(direction * speed * Time.deltaTime);
 
-        if(Vector3.Distance(transform.position,currentTarget.transform.position) < minDistance)
+        if (Vector3.Distance(transform.position, currentTarget.transform.position) < minDistance)
         {
             inCombat = true;
             canAttack = true;
@@ -294,13 +294,13 @@ public class EnemyMovement : NetworkBehaviour
             canMove = true;
             currentMovement = Movement.Forward;
         }
-      
+
     }
 
 
-    [ServerRpc(RequireOwnership =false)]
+    [ServerRpc(RequireOwnership = false)]
     void DespawnServerRpc()
-    {          
+    {
         NetworkObject.Despawn();
     }
 
@@ -365,5 +365,21 @@ public class EnemyMovement : NetworkBehaviour
     {
         gameObject.SetActive(false);
         StopAllCoroutines();
+    }
+
+    public void Popup(int power)
+    {
+        Debug.Log("popup");
+        characterController.enabled = false;
+        GetComponent<Rigidbody>().AddForce(Vector3.up * power, ForceMode.Impulse);
+
+        Invoke("ReenableCC", 2f);
+        
+    }
+
+    void ReenableCC()
+    {
+
+        characterController.enabled = true;
     }
 }
