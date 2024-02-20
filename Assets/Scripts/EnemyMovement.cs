@@ -369,17 +369,13 @@ public class EnemyMovement : NetworkBehaviour
 
     public void Popup(int power)
     {
-        Debug.Log("popup");
-        characterController.enabled = false;
-        GetComponent<Rigidbody>().AddForce(Vector3.up * power, ForceMode.Impulse);
-
-        Invoke("ReenableCC", 2f);
-        
+        var direction = transform.up + -transform.forward;
+        characterController.Move(direction * power * speed * Time.deltaTime);
     }
-
-    void ReenableCC()
+    [ServerRpc(RequireOwnership =false)]
+    public void PopupServerRpc(int power)
     {
-
-        characterController.enabled = true;
+        var direction = transform.up + -transform.forward;
+        characterController.Move(direction * power * speed * Time.deltaTime);
     }
 }

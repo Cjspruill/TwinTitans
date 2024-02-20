@@ -196,7 +196,7 @@ MonoBehaviour:
   boxCollider: {fileID: 0}
   playerEnergy: {fileID: 5417113676798447251}
   damage: 1
-  power: 5
+  power: 100
   rb: {fileID: 0}
 --- !u!1 &1078591076934480201
 GameObject:
@@ -393,7 +393,7 @@ MonoBehaviour:
   boxCollider: {fileID: 0}
   playerEnergy: {fileID: 5417113676798447251}
   damage: 1
-  power: 1
+  power: 100
   rb: {fileID: 0}
 --- !u!1 &1797364059245461828
 GameObject:
@@ -1832,7 +1832,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  GlobalObjectIdHash: 1168160594
+  GlobalObjectIdHash: 3342531999
   AlwaysReplicateAsRoot: 0
   SynchronizeTransform: 1
   ActiveSceneSynchronization: 0
@@ -1914,6 +1914,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   camera: {fileID: 1672830845081147377}
   speed: 18
+  speedModifier: 2
+  isRunning: 0
   turnSmoothTime: 0.1
   characterController: {fileID: 2687139341700316790}
   lowAttackCollider: {fileID: 1649100805212145298}
@@ -1926,6 +1928,7 @@ MonoBehaviour:
   targets: []
   closestTarget: {fileID: 0}
   targetIndex: 0
+  lockOnSpeed: 300
   audioListener: {fileID: 6877384929253718631}
   move:
     m_Name: Move
@@ -1972,11 +1975,47 @@ MonoBehaviour:
     m_Interactions: 
     m_SingletonActionBindings: []
     m_Flags: 0
-  evade:
-    m_Name: Evade
+  leftEvade:
+    m_Name: Left Evade
     m_Type: 0
     m_ExpectedControlType: 
-    m_Id: 5a7fa2bb-84e6-42f1-a466-4cecd4808c40
+    m_Id: 583e3139-7cb2-464d-bacb-99a7ad6762be
+    m_Processors: 
+    m_Interactions: 
+    m_SingletonActionBindings: []
+    m_Flags: 0
+  rightEvade:
+    m_Name: Right Evade
+    m_Type: 0
+    m_ExpectedControlType: 
+    m_Id: 2326d33d-e62d-4903-8c93-8067750a8471
+    m_Processors: 
+    m_Interactions: 
+    m_SingletonActionBindings: []
+    m_Flags: 0
+  forwardEvade:
+    m_Name: Forward Evade
+    m_Type: 0
+    m_ExpectedControlType: 
+    m_Id: 9191c13f-a955-4f11-897f-dfd72333c40e
+    m_Processors: 
+    m_Interactions: 
+    m_SingletonActionBindings: []
+    m_Flags: 0
+  backEvade:
+    m_Name: Back Evade
+    m_Type: 0
+    m_ExpectedControlType: 
+    m_Id: 6431883b-bd8e-4890-beb7-190b46bf5a85
+    m_Processors: 
+    m_Interactions: 
+    m_SingletonActionBindings: []
+    m_Flags: 0
+  run:
+    m_Name: Run
+    m_Type: 0
+    m_ExpectedControlType: 
+    m_Id: df3c03ff-78f2-4696-b5d7-ebae31467eb3
     m_Processors: 
     m_Interactions: 
     m_SingletonActionBindings: []
@@ -2022,6 +2061,16 @@ MonoBehaviour:
         byte0027: 0
         byte0028: 0
         byte0029: 0
+  leftEvadeTimer: 0
+  evadeIndex: 0
+  rightEvadeTimer: 0
+  forwardEvadeTimer: 0
+  backEvadeTimer: 0
+  evadeTime: 0.25
+  isEnteringLeftEvade: 0
+  isEnteringRightEvade: 0
+  isEnteringForwardEvade: 0
+  isEnteringBackEvade: 0
 --- !u!143 &2687139341700316790
 CharacterController:
   m_ObjectHideFlags: 0

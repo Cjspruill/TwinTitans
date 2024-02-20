@@ -60,9 +60,45 @@
                     "initialStateCheck": false
                 },
                 {
-                    "name": "Evade",
+                    "name": "LeftEvade",
                     "type": "Button",
                     "id": "77f73f91-0348-48f4-a645-b02d907e4cf1",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "RightEvade",
+                    "type": "Button",
+                    "id": "45aab379-c967-4494-adf4-a5d61794823c",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "BackEvade",
+                    "type": "Button",
+                    "id": "b13a8bb6-7285-44ee-ae35-355ff5b215f9",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "ForwardEvade",
+                    "type": "Button",
+                    "id": "071b2662-96b6-45bd-b712-22dad1978dd4",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Run",
+                    "type": "Button",
+                    "id": "7a761d39-3f9f-410e-b43c-92494c43295c",
                     "expectedControlType": "Button",
                     "processors": "",
                     "interactions": "",
@@ -359,11 +395,11 @@
                 {
                     "name": "",
                     "id": "4037fd7a-840e-48e0-9817-aa7107d681a4",
-                    "path": "<Keyboard>/leftShift",
+                    "path": "<Keyboard>/a",
                     "interactions": "",
                     "processors": "",
                     "groups": "Keyboard&Mouse",
-                    "action": "Evade",
+                    "action": "LeftEvade",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
@@ -374,7 +410,51 @@
                     "interactions": "",
                     "processors": "",
                     "groups": "Gamepad",
-                    "action": "Evade",
+                    "action": "LeftEvade",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "d3f21d85-b4ed-41f9-99ac-e63d8bb1e0ca",
+                    "path": "<Keyboard>/d",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Keyboard&Mouse",
+                    "action": "RightEvade",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "0e8f9139-f772-4387-8449-bc9f54f87320",
+                    "path": "<Keyboard>/s",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Keyboard&Mouse",
+                    "action": "BackEvade",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "1a607213-b27b-4194-a720-d0a1dc54c14d",
+                    "path": "<Keyboard>/w",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Keyboard&Mouse",
+                    "action": "ForwardEvade",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "ac606f27-f3e6-472c-aeab-9255a19b87db",
+                    "path": "<Keyboard>/leftShift",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Keyboard&Mouse",
+                    "action": "Run",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

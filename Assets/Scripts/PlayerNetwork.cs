@@ -10,6 +10,8 @@ public class PlayerNetwork : NetworkBehaviour
     public Transform camera; // Reference to the main camera transform
 
     public float speed = 6f; // Movement speed
+    [SerializeField] float speedModifier = 2f;
+    [SerializeField] bool isRunning;
     public float turnSmoothTime = 0.1f; // Smoothing time for turning
     float turnSmoothVelocity; // Velocity used for smoothing turning
 
@@ -25,8 +27,10 @@ public class PlayerNetwork : NetworkBehaviour
 
     [SerializeField] bool lockedOn;
     [SerializeField] Target[] targets;
-    [SerializeField]public GameObject closestTarget;
+    [SerializeField] public GameObject closestTarget;
     [SerializeField] int targetIndex;
+    [SerializeField] float lockOnSpeed = 1f;
+
 
     [SerializeField] AudioListener audioListener;
     [SerializeField] PlayerInputActions playerControls;
@@ -35,7 +39,11 @@ public class PlayerNetwork : NetworkBehaviour
     [SerializeField] InputAction grab;
     [SerializeField]public InputAction toggleTarget;
     [SerializeField] InputAction switchTarget;
-    [SerializeField] InputAction evade;
+    [SerializeField] InputAction leftEvade;
+    [SerializeField] InputAction rightEvade;
+    [SerializeField] InputAction forwardEvade;
+    [SerializeField] InputAction backEvade;
+    [SerializeField] InputAction run;
 
     [SerializeField] float attackTimer;
     [SerializeField] bool comboActive;
@@ -48,6 +56,17 @@ public class PlayerNetwork : NetworkBehaviour
 
     public NetworkVariable<FixedString32Bytes> PlayerName = new NetworkVariable<FixedString32Bytes>();
 
+    [SerializeField] private float leftEvadeTimer;
+    [SerializeField] private int evadeIndex=0;
+    [SerializeField] private float rightEvadeTimer;
+    [SerializeField] private float forwardEvadeTimer;
+    [SerializeField] private float backEvadeTimer;
+    [SerializeField] private float evadeTime;
+
+    [SerializeField] private bool isEnteringLeftEvade;
+    [SerializeField] private bool isEnteringRightEvade;
+    [SerializeField] private bool isEnteringForwardEvade;
+    [SerializeField] private bool isEnteringBackEvade;
 
     private void Awake()
     {
@@ -60,13 +79,21 @@ public class PlayerNetwork : NetworkBehaviour
         grab = playerControls.Player.Grab;
         toggleTarget = playerControls.Player.ToggleTarget;
         switchTarget = playerControls.Player.SwitchTarget;
-        evade = playerControls.Player.Evade;
+        leftEvade = playerControls.Player.LeftEvade;
+        rightEvade = playerControls.Player.RightEvade;
+        forwardEvade = playerControls.Player.ForwardEvade;
+        backEvade = playerControls.Player.BackEvade;
+        run = playerControls.Player.Run;
         move.Enable();
         attack.Enable();
         grab.Enable();
         toggleTarget.Enable();
         switchTarget.Enable();
-        evade.Enable();
+        leftEvade.Enable();
+        rightEvade.Enable();
+        forwardEvade.Enable();
+        backEvade.Enable();
+        run.Enable();
     }
     private void OnDisable()
     {
@@ -75,7 +102,11 @@ public class PlayerNetwork : NetworkBehaviour
         grab.Disable();
         toggleTarget.Disable();
         switchTarget.Disable();
-        evade.Disable();
+        leftEvade.Disable();
+        rightEvade.Disable();
+        forwardEvade.Disable();
+        backEvade.Disable();
+        run.Disable();
     }
     public override void OnNetworkSpawn()
     {
@@ -94,7 +125,11 @@ public class PlayerNetwork : NetworkBehaviour
             lowAttackCollider.enabled = false;
             characterController = GetComponent<CharacterController>();
 
-          
+
+   
+            Cursor.lockState = CursorLockMode.Locked;
+            Cursor.visible = false;
+
         }
         else if (!IsOwner)
         {
@@ -128,6 +163,52 @@ public class PlayerNetwork : NetworkBehaviour
     {
         if (IsLocalPlayer)
         {
+
+            //Left Evade
+            if (isEnteringLeftEvade)
+                leftEvadeTimer += Time.deltaTime;
+
+            if (leftEvadeTimer >= evadeTime)
+            {
+                isEnteringLeftEvade = false;
+                leftEvadeTimer = 0;
+                evadeIndex = 0;
+            }
+
+            //Right Evade
+            if (isEnteringRightEvade)
+                rightEvadeTimer += Time.deltaTime;
+
+            if(rightEvadeTimer >= evadeTime)
+            {
+                isEnteringRightEvade = false;
+                rightEvadeTimer = 0;
+                evadeIndex = 0;
+            }
+
+            //Forward Evade
+            if (isEnteringForwardEvade)
+                forwardEvadeTimer += Time.deltaTime;
+
+            if(forwardEvadeTimer >= evadeTime)
+            {
+                isEnteringForwardEvade = false;
+                forwardEvadeTimer = 0;
+                evadeIndex = 0;
+            }
+
+            //Back Evade
+            if (isEnteringBackEvade)
+                backEvadeTimer += Time.deltaTime;
+
+            if(backEvadeTimer >= evadeTime)
+            {
+                isEnteringBackEvade = false;
+                backEvadeTimer = 0;
+                evadeIndex = 0;
+            }
+
+
             MovePlayer();
             AllowAttacks();
             AllowEvades();
@@ -145,6 +226,19 @@ public class PlayerNetwork : NetworkBehaviour
 
     void MovePlayer()
     {
+
+        if (run.inProgress)
+        {
+            Debug.Log("Run key pressed down");
+            isRunning = true;
+        }
+        else if (run.WasReleasedThisFrame())
+        {
+            isRunning = false;
+        }
+      
+
+
         // Get input for horizontal and vertical movement
         float horizontal = move.ReadValue<Vector2>().x; //Input.GetAxisRaw("Horizontal");
         float vertical = move.ReadValue<Vector2>().y; //Input.GetAxisRaw("Vertical");
@@ -159,7 +253,11 @@ public class PlayerNetwork : NetworkBehaviour
 
             Vector3 moveDir = Quaternion.Euler(0f, targetAngle, 0f) * Vector3.forward;
             moveDir += Physics.gravity;
+           
+            if(!isRunning)
             characterController.Move(moveDir.normalized * speed * Time.deltaTime);
+            else if(isRunning)
+                characterController.Move(moveDir.normalized * speed * speedModifier * Time.deltaTime);
         }    
     }
 
@@ -247,14 +345,26 @@ public class PlayerNetwork : NetworkBehaviour
         {
             if (targets != null)
             {
+
+                float lookTime = Time.deltaTime;
+
                 // Get the direction to the target
                 Vector3 directionToTarget = closestTarget.transform.position - transform.position;
+
+
+                // The step size is equal to speed times frame time.
+                float singleStep = lockOnSpeed * Time.deltaTime;
 
                 // Lock the rotation around the X-axis
                 directionToTarget.y = 0f;
 
+                Vector3 newDirection = Vector3.RotateTowards(transform.forward, directionToTarget, singleStep, 0.0f);
+
+                Quaternion rotTarget = Quaternion.LookRotation(closestTarget.transform.position - transform.position);
                 // Make the object look at the target
-                transform.rotation = Quaternion.LookRotation(directionToTarget);
+                //transform.rotation = Quaternion.LookRotation(directionToTarget);
+                transform.rotation = Quaternion.RotateTowards(transform.rotation, rotTarget, singleStep);
+
             }
 
         }
@@ -262,27 +372,88 @@ public class PlayerNetwork : NetworkBehaviour
 
     void AllowEvades()
     {
-        if(move.ReadValue<Vector2>().y > .1f && evade.WasPressedThisFrame())
+        if(forwardEvade.WasPressedThisFrame())
         {
+            if(!isEnteringForwardEvade && forwardEvadeTimer < evadeTime)
+            {
+                isEnteringForwardEvade = true;
+                evadeIndex++;
+            }
+            else if (isEnteringForwardEvade)
+            {
+                evadeIndex++;
+            }
+
+            if(forwardEvadeTimer < evadeTime && evadeIndex == 2)
+            {
+                evadeIndex = 0;
+                isEnteringForwardEvade = false;
+                forwardEvadeTimer = 0;               
             EvadeForward();
+            }
         }
-       else if (move.ReadValue<Vector2>().y < -.1f && evade.WasPressedThisFrame())
+       else if (backEvade.WasPressedThisFrame())
         {
+            if(!isEnteringBackEvade && backEvadeTimer < evadeTime)
+            {
+                isEnteringBackEvade = true;
+                evadeIndex++;
+            }
+            else if (isEnteringBackEvade)
+            {
+                evadeIndex++;
+            }
+
+            if(backEvadeTimer < evadeTime && evadeIndex == 2)
+            {
+                evadeIndex = 0;
+                isEnteringBackEvade = false;
+                backEvadeTimer = 0;
+
             EvadeBack();
+            }
         }
-        else if(move.ReadValue<Vector2>().x < -.1f && evade.WasPressedThisFrame())
+        else if(leftEvade.WasPressedThisFrame())
         {
+            if (!isEnteringLeftEvade && leftEvadeTimer < evadeTime)
+            {
+                isEnteringLeftEvade = true;
+                evadeIndex++;
+            }
+           else if (isEnteringLeftEvade)
+            {
+                evadeIndex++;
+            }
+
+            if(leftEvadeTimer < evadeTime && evadeIndex == 2)
+            {
+                evadeIndex = 0;
+                isEnteringLeftEvade = false;
+                leftEvadeTimer = 0;
             Debug.Log("Left evade");
             EvadeLeft();
+            }
         }
-        else if(move.ReadValue<Vector2>().x > .1f && evade.WasPressedThisFrame())
+        else if(rightEvade.WasPressedThisFrame())
         {
+            if(!isEnteringRightEvade && rightEvadeTimer < evadeTime)
+            {
+                isEnteringRightEvade = true;
+                evadeIndex++;
+            }
+            else if (isEnteringRightEvade)
+            {
+                evadeIndex++;
+            }
+
+            if(rightEvadeTimer < evadeTime && evadeIndex == 2)
+            {
+                evadeIndex = 0;
+                isEnteringRightEvade = false;
+                rightEvadeTimer = 0;
             Debug.Log("Right evade");
             EvadeRight();
-        }
-        else if (evade.WasPressedThisFrame())
-        {
-            EvadeBackNeutral();
+            }
         }
     }
 
@@ -319,16 +490,6 @@ public class PlayerNetwork : NetworkBehaviour
             characterController.Move(moveDir.normalized * evadeDistance * speed * Time.deltaTime);
         }
     }
-
-    void EvadeBackNeutral()
-    {
-        Debug.Log("Evaded Back");
-
-        Vector3 moveDir = -transform.forward;
-        moveDir += Physics.gravity;
-        characterController.Move(moveDir.normalized * evadeDistance * speed * Time.deltaTime);
-    }
-
     void EvadeLeft()
     {
         float horizontal = move.ReadValue<Vector2>().x; //Input.GetAxisRaw("Vertical");

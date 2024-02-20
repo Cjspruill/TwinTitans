@@ -82,9 +82,45 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
                     ""initialStateCheck"": false
                 },
                 {
-                    ""name"": ""Evade"",
+                    ""name"": ""LeftEvade"",
                     ""type"": ""Button"",
                     ""id"": ""77f73f91-0348-48f4-a645-b02d907e4cf1"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""RightEvade"",
+                    ""type"": ""Button"",
+                    ""id"": ""45aab379-c967-4494-adf4-a5d61794823c"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""BackEvade"",
+                    ""type"": ""Button"",
+                    ""id"": ""b13a8bb6-7285-44ee-ae35-355ff5b215f9"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""ForwardEvade"",
+                    ""type"": ""Button"",
+                    ""id"": ""071b2662-96b6-45bd-b712-22dad1978dd4"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Run"",
+                    ""type"": ""Button"",
+                    ""id"": ""7a761d39-3f9f-410e-b43c-92494c43295c"",
                     ""expectedControlType"": ""Button"",
                     ""processors"": """",
                     ""interactions"": """",
@@ -381,11 +417,11 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
                 {
                     ""name"": """",
                     ""id"": ""4037fd7a-840e-48e0-9817-aa7107d681a4"",
-                    ""path"": ""<Keyboard>/leftShift"",
+                    ""path"": ""<Keyboard>/a"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": ""Keyboard&Mouse"",
-                    ""action"": ""Evade"",
+                    ""action"": ""LeftEvade"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 },
@@ -396,7 +432,51 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": ""Gamepad"",
-                    ""action"": ""Evade"",
+                    ""action"": ""LeftEvade"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""d3f21d85-b4ed-41f9-99ac-e63d8bb1e0ca"",
+                    ""path"": ""<Keyboard>/d"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard&Mouse"",
+                    ""action"": ""RightEvade"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""0e8f9139-f772-4387-8449-bc9f54f87320"",
+                    ""path"": ""<Keyboard>/s"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard&Mouse"",
+                    ""action"": ""BackEvade"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""1a607213-b27b-4194-a720-d0a1dc54c14d"",
+                    ""path"": ""<Keyboard>/w"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard&Mouse"",
+                    ""action"": ""ForwardEvade"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""ac606f27-f3e6-472c-aeab-9255a19b87db"",
+                    ""path"": ""<Keyboard>/leftShift"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard&Mouse"",
+                    ""action"": ""Run"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 }
@@ -990,7 +1070,11 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
         m_Player_Grab = m_Player.FindAction("Grab", throwIfNotFound: true);
         m_Player_ToggleTarget = m_Player.FindAction("ToggleTarget", throwIfNotFound: true);
         m_Player_SwitchTarget = m_Player.FindAction("SwitchTarget", throwIfNotFound: true);
-        m_Player_Evade = m_Player.FindAction("Evade", throwIfNotFound: true);
+        m_Player_LeftEvade = m_Player.FindAction("LeftEvade", throwIfNotFound: true);
+        m_Player_RightEvade = m_Player.FindAction("RightEvade", throwIfNotFound: true);
+        m_Player_BackEvade = m_Player.FindAction("BackEvade", throwIfNotFound: true);
+        m_Player_ForwardEvade = m_Player.FindAction("ForwardEvade", throwIfNotFound: true);
+        m_Player_Run = m_Player.FindAction("Run", throwIfNotFound: true);
         // UI
         m_UI = asset.FindActionMap("UI", throwIfNotFound: true);
         m_UI_Navigate = m_UI.FindAction("Navigate", throwIfNotFound: true);
@@ -1070,7 +1154,11 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
     private readonly InputAction m_Player_Grab;
     private readonly InputAction m_Player_ToggleTarget;
     private readonly InputAction m_Player_SwitchTarget;
-    private readonly InputAction m_Player_Evade;
+    private readonly InputAction m_Player_LeftEvade;
+    private readonly InputAction m_Player_RightEvade;
+    private readonly InputAction m_Player_BackEvade;
+    private readonly InputAction m_Player_ForwardEvade;
+    private readonly InputAction m_Player_Run;
     public struct PlayerActions
     {
         private @PlayerInputActions m_Wrapper;
@@ -1081,7 +1169,11 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
         public InputAction @Grab => m_Wrapper.m_Player_Grab;
         public InputAction @ToggleTarget => m_Wrapper.m_Player_ToggleTarget;
         public InputAction @SwitchTarget => m_Wrapper.m_Player_SwitchTarget;
-        public InputAction @Evade => m_Wrapper.m_Player_Evade;
+        public InputAction @LeftEvade => m_Wrapper.m_Player_LeftEvade;
+        public InputAction @RightEvade => m_Wrapper.m_Player_RightEvade;
+        public InputAction @BackEvade => m_Wrapper.m_Player_BackEvade;
+        public InputAction @ForwardEvade => m_Wrapper.m_Player_ForwardEvade;
+        public InputAction @Run => m_Wrapper.m_Player_Run;
         public InputActionMap Get() { return m_Wrapper.m_Player; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -1109,9 +1201,21 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
             @SwitchTarget.started += instance.OnSwitchTarget;
             @SwitchTarget.performed += instance.OnSwitchTarget;
             @SwitchTarget.canceled += instance.OnSwitchTarget;
-            @Evade.started += instance.OnEvade;
-            @Evade.performed += instance.OnEvade;
-            @Evade.canceled += instance.OnEvade;
+            @LeftEvade.started += instance.OnLeftEvade;
+            @LeftEvade.performed += instance.OnLeftEvade;
+            @LeftEvade.canceled += instance.OnLeftEvade;
+            @RightEvade.started += instance.OnRightEvade;
+            @RightEvade.performed += instance.OnRightEvade;
+            @RightEvade.canceled += instance.OnRightEvade;
+            @BackEvade.started += instance.OnBackEvade;
+            @BackEvade.performed += instance.OnBackEvade;
+            @BackEvade.canceled += instance.OnBackEvade;
+            @ForwardEvade.started += instance.OnForwardEvade;
+            @ForwardEvade.performed += instance.OnForwardEvade;
+            @ForwardEvade.canceled += instance.OnForwardEvade;
+            @Run.started += instance.OnRun;
+            @Run.performed += instance.OnRun;
+            @Run.canceled += instance.OnRun;
         }
 
         private void UnregisterCallbacks(IPlayerActions instance)
@@ -1134,9 +1238,21 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
             @SwitchTarget.started -= instance.OnSwitchTarget;
             @SwitchTarget.performed -= instance.OnSwitchTarget;
             @SwitchTarget.canceled -= instance.OnSwitchTarget;
-            @Evade.started -= instance.OnEvade;
-            @Evade.performed -= instance.OnEvade;
-            @Evade.canceled -= instance.OnEvade;
+            @LeftEvade.started -= instance.OnLeftEvade;
+            @LeftEvade.performed -= instance.OnLeftEvade;
+            @LeftEvade.canceled -= instance.OnLeftEvade;
+            @RightEvade.started -= instance.OnRightEvade;
+            @RightEvade.performed -= instance.OnRightEvade;
+            @RightEvade.canceled -= instance.OnRightEvade;
+            @BackEvade.started -= instance.OnBackEvade;
+            @BackEvade.performed -= instance.OnBackEvade;
+            @BackEvade.canceled -= instance.OnBackEvade;
+            @ForwardEvade.started -= instance.OnForwardEvade;
+            @ForwardEvade.performed -= instance.OnForwardEvade;
+            @ForwardEvade.canceled -= instance.OnForwardEvade;
+            @Run.started -= instance.OnRun;
+            @Run.performed -= instance.OnRun;
+            @Run.canceled -= instance.OnRun;
         }
 
         public void RemoveCallbacks(IPlayerActions instance)
@@ -1325,7 +1441,11 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
         void OnGrab(InputAction.CallbackContext context);
         void OnToggleTarget(InputAction.CallbackContext context);
         void OnSwitchTarget(InputAction.CallbackContext context);
-        void OnEvade(InputAction.CallbackContext context);
+        void OnLeftEvade(InputAction.CallbackContext context);
+        void OnRightEvade(InputAction.CallbackContext context);
+        void OnBackEvade(InputAction.CallbackContext context);
+        void OnForwardEvade(InputAction.CallbackContext context);
+        void OnRun(InputAction.CallbackContext context);
     }
     public interface IUIActions
     {

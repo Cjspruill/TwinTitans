@@ -34,6 +34,7 @@ public class MouseLook : NetworkBehaviour
         
         look = playerControls.Player.Look;
         look.Enable();
+
     }
 
     public override void OnNetworkSpawn()

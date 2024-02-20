@@ -196,7 +196,7 @@ MonoBehaviour:
   boxCollider: {fileID: 0}
   playerEnergy: {fileID: -3989526317341553665}
   damage: 1
-  power: 3
+  power: 100
   rb: {fileID: 0}
 --- !u!1 &1008031041633781316
 GameObject:
@@ -505,7 +505,7 @@ MonoBehaviour:
   boxCollider: {fileID: 0}
   playerEnergy: {fileID: -3989526317341553665}
   damage: 1
-  power: 1
+  power: 100
   rb: {fileID: 0}
 --- !u!1 &2440748894580251716
 GameObject:
@@ -1608,6 +1608,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   camera: {fileID: 1672830845081147377}
   speed: 18
+  speedModifier: 2
+  isRunning: 0
   turnSmoothTime: 0.1
   characterController: {fileID: 0}
   lowAttackCollider: {fileID: 1649100805212145298}
@@ -1620,6 +1622,7 @@ MonoBehaviour:
   targets: []
   closestTarget: {fileID: 0}
   targetIndex: 0
+  lockOnSpeed: 300
   audioListener: {fileID: 6877384929253718631}
   move:
     m_Name: Move
@@ -1666,11 +1669,47 @@ MonoBehaviour:
     m_Interactions: 
     m_SingletonActionBindings: []
     m_Flags: 0
-  evade:
-    m_Name: Evade
+  leftEvade:
+    m_Name: Left Evade
     m_Type: 0
     m_ExpectedControlType: 
-    m_Id: 0787b39a-c6af-4a13-b70e-d9c09b74f830
+    m_Id: 520c4627-85fd-457b-afd9-f830ce0412c6
+    m_Processors: 
+    m_Interactions: 
+    m_SingletonActionBindings: []
+    m_Flags: 0
+  rightEvade:
+    m_Name: Right Evade
+    m_Type: 0
+    m_ExpectedControlType: 
+    m_Id: 91649ad2-087d-494c-b934-c3c314703028
+    m_Processors: 
+    m_Interactions: 
+    m_SingletonActionBindings: []
+    m_Flags: 0
+  forwardEvade:
+    m_Name: Forward Evade
+    m_Type: 0
+    m_ExpectedControlType: 
+    m_Id: e060cd73-bb34-45b3-96e8-39431957afcf
+    m_Processors: 
+    m_Interactions: 
+    m_SingletonActionBindings: []
+    m_Flags: 0
+  backEvade:
+    m_Name: Back Evade
+    m_Type: 0
+    m_ExpectedControlType: 
+    m_Id: 9b20d855-198f-4f33-aeaa-a631840f1dbc
+    m_Processors: 
+    m_Interactions: 
+    m_SingletonActionBindings: []
+    m_Flags: 0
+  run:
+    m_Name: Run
+    m_Type: 0
+    m_ExpectedControlType: 
+    m_Id: 2c0dba64-a90a-4fa4-8ca4-806d55e90c76
     m_Processors: 
     m_Interactions: 
     m_SingletonActionBindings: []
@@ -1716,6 +1755,16 @@ MonoBehaviour:
         byte0027: 0
         byte0028: 0
         byte0029: 0
+  leftEvadeTimer: 0
+  evadeIndex: 0
+  rightEvadeTimer: 0
+  forwardEvadeTimer: 0
+  backEvadeTimer: 0
+  evadeTime: 0
+  isEnteringLeftEvade: 0
+  isEnteringRightEvade: 0
+  isEnteringForwardEvade: 0
+  isEnteringBackEvade: 0
 --- !u!143 &2687139341700316790
 CharacterController:
   m_ObjectHideFlags: 0
