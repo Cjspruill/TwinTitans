@@ -345,26 +345,11 @@ public class PlayerNetwork : NetworkBehaviour
         {
             if (targets != null)
             {
-
-                float lookTime = Time.deltaTime;
-
-                // Get the direction to the target
-                Vector3 directionToTarget = closestTarget.transform.position - transform.position;
-
-
                 // The step size is equal to speed times frame time.
                 float singleStep = lockOnSpeed * Time.deltaTime;
-
-                // Lock the rotation around the X-axis
-                directionToTarget.y = 0f;
-
-                Vector3 newDirection = Vector3.RotateTowards(transform.forward, directionToTarget, singleStep, 0.0f);
-
                 Quaternion rotTarget = Quaternion.LookRotation(closestTarget.transform.position - transform.position);
                 // Make the object look at the target
-                //transform.rotation = Quaternion.LookRotation(directionToTarget);
                 transform.rotation = Quaternion.RotateTowards(transform.rotation, rotTarget, singleStep);
-
             }
 
         }
