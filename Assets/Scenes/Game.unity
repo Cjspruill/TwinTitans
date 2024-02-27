@@ -462,7 +462,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: a97b4b6452d85c04089ac58b9db40829, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -1
+      value: -2
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: a97b4b6452d85c04089ac58b9db40829, type: 3}
       propertyPath: m_LocalPosition.z
@@ -500,6 +500,14 @@ PrefabInstance:
       propertyPath: m_Name
       value: Arena
       objectReference: {fileID: 0}
+    - target: {fileID: 5148817236446094103, guid: a97b4b6452d85c04089ac58b9db40829, type: 3}
+      propertyPath: m_Layer
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 8513859187771203891, guid: a97b4b6452d85c04089ac58b9db40829, type: 3}
+      propertyPath: m_Layer
+      value: 3
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -522,6 +530,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 8513859187771203891, guid: a97b4b6452d85c04089ac58b9db40829, type: 3}
       insertIndex: -1
       addedObject: {fileID: 126724681}
+    - targetCorrespondingSourceObject: {fileID: 5148817236446094103, guid: a97b4b6452d85c04089ac58b9db40829, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1771503628}
   m_SourcePrefab: {fileID: 100100000, guid: a97b4b6452d85c04089ac58b9db40829, type: 3}
 --- !u!4 &314896519 stripped
 Transform:
@@ -2249,6 +2260,32 @@ MonoBehaviour:
   serverButton: {fileID: 1220716464}
   hostButton: {fileID: 612953977}
   clientButton: {fileID: 131937372}
+--- !u!1 &1771503627 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 5148817236446094103, guid: a97b4b6452d85c04089ac58b9db40829, type: 3}
+  m_PrefabInstance: {fileID: 314896518}
+  m_PrefabAsset: {fileID: 0}
+--- !u!65 &1771503628
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1771503627}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1.9999999, y: 0, z: 1.9999999}
+  m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &1930104360
 GameObject:
   m_ObjectHideFlags: 0

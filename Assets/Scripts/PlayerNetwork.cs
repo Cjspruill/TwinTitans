@@ -10,12 +10,19 @@ public class PlayerNetwork : NetworkBehaviour
     public Transform camera; // Reference to the main camera transform
 
     public float speed = 6f; // Movement speed
+    [SerializeField] float gravityScale = 9.8f;
     [SerializeField] float speedModifier = 2f;
+    [SerializeField] float jumpPower = 30f;
+    [SerializeField] float ySpeed;
     [SerializeField] bool isRunning;
+    [SerializeField] float groundCheckDistance = 0.2f;
+    [SerializeField] LayerMask groundLayer;
     public float turnSmoothTime = 0.1f; // Smoothing time for turning
     float turnSmoothVelocity; // Velocity used for smoothing turning
 
     [SerializeField] CharacterController characterController;
+    [SerializeField] Animator animator;
+    [SerializeField] Vector3 moveDir;
 
     [SerializeField] private BoxCollider lowAttackCollider;
     [SerializeField] private BoxCollider medAttackCollider;
@@ -44,6 +51,7 @@ public class PlayerNetwork : NetworkBehaviour
     [SerializeField] InputAction forwardEvade;
     [SerializeField] InputAction backEvade;
     [SerializeField] InputAction run;
+    [SerializeField] InputAction jump;
 
     [SerializeField] float attackTimer;
     [SerializeField] bool comboActive;
@@ -68,6 +76,14 @@ public class PlayerNetwork : NetworkBehaviour
     [SerializeField] private bool isEnteringForwardEvade;
     [SerializeField] private bool isEnteringBackEvade;
 
+    [SerializeField] bool isReady;
+
+    [SerializeField] float horizontalInput;
+    [SerializeField] float verticalInput;
+    [SerializeField] bool isJumping;
+    [SerializeField] bool isGrounded;
+
+
     private void Awake()
     {
         playerControls = new PlayerInputActions();
@@ -84,6 +100,7 @@ public class PlayerNetwork : NetworkBehaviour
         forwardEvade = playerControls.Player.ForwardEvade;
         backEvade = playerControls.Player.BackEvade;
         run = playerControls.Player.Run;
+        jump = playerControls.Player.Jump;
         move.Enable();
         attack.Enable();
         grab.Enable();
@@ -94,6 +111,7 @@ public class PlayerNetwork : NetworkBehaviour
         forwardEvade.Enable();
         backEvade.Enable();
         run.Enable();
+        jump.Enable();
     }
     private void OnDisable()
     {
@@ -107,6 +125,7 @@ public class PlayerNetwork : NetworkBehaviour
         forwardEvade.Disable();
         backEvade.Disable();
         run.Disable();
+        jump.Disable();
     }
     public override void OnNetworkSpawn()
     {
@@ -142,6 +161,7 @@ public class PlayerNetwork : NetworkBehaviour
 
     void RunSetup()
     {
+        isReady = true;
         enemies = FindObjectsOfType<EnemyMovement>();
 
         for (int i = 0; i < enemies.Length; i++)
@@ -161,8 +181,11 @@ public class PlayerNetwork : NetworkBehaviour
 
     void Update()
     {
+        if (!isReady) return;
+
         if (IsLocalPlayer)
         {
+      
 
             //Left Evade
             if (isEnteringLeftEvade)
@@ -207,59 +230,103 @@ public class PlayerNetwork : NetworkBehaviour
                 backEvadeTimer = 0;
                 evadeIndex = 0;
             }
-
-
-            MovePlayer();
             AllowAttacks();
             AllowEvades();
+
+            UpdateInput();
         }
     }
 
-    IEnumerator EnableCollider(BoxCollider boxCollider)
+    void UpdateInput()
     {
-        boxCollider.enabled = true;
+        horizontalInput = move.ReadValue<Vector2>().x;
+        verticalInput = move.ReadValue<Vector2>().y;
 
-        yield return new WaitForSeconds(.15f);
+        moveDir = new Vector3(horizontalInput, 0f, verticalInput) * speed;
+        moveDir = transform.TransformDirection(moveDir);
 
-        boxCollider.enabled = false;
-    }
-
-    void MovePlayer()
-    {
+        if (jump.WasPressedThisFrame() && isGrounded)
+        {
+            ySpeed = jumpPower;
+            isGrounded = false;
+            isJumping = true;
+            animator.SetBool("IsJumping", true);
+            animator.SetBool("IsFalling", true);
+            animator.SetBool("IsGrounded", false);
+        }
 
         if (run.inProgress)
         {
-            Debug.Log("Run key pressed down");
             isRunning = true;
         }
         else if (run.WasReleasedThisFrame())
         {
             isRunning = false;
         }
-      
 
-
-        // Get input for horizontal and vertical movement
-        float horizontal = move.ReadValue<Vector2>().x; //Input.GetAxisRaw("Horizontal");
-        float vertical = move.ReadValue<Vector2>().y; //Input.GetAxisRaw("Vertical");
-        Vector3 direction = new Vector3(horizontal, 0f, vertical).normalized;
-
-        // Rotate movement direction based on camera
-        if (direction.magnitude >= 0.1f)
+        if (isRunning)
         {
-            float targetAngle = Mathf.Atan2(direction.x, direction.z) * Mathf.Rad2Deg + camera.eulerAngles.y;
-            float angle = Mathf.SmoothDampAngle(transform.eulerAngles.y, targetAngle, ref turnSmoothVelocity, turnSmoothTime);
-            // transform.rotation = Quaternion.Euler(0f, angle, 0f);
+            animator.SetFloat("Speed", verticalInput * 2, .15f, Time.deltaTime);
+            animator.SetFloat("Direction", horizontalInput * 2, .15f, Time.deltaTime);
+        }
+        else if (!isRunning)
+        {
+            animator.SetFloat("Speed", verticalInput, .15f, Time.deltaTime);
+            animator.SetFloat("Direction", horizontalInput, .15f, Time.deltaTime);
+        }
 
-            Vector3 moveDir = Quaternion.Euler(0f, targetAngle, 0f) * Vector3.forward;
-            moveDir += Physics.gravity;
-           
-            if(!isRunning)
-            characterController.Move(moveDir.normalized * speed * Time.deltaTime);
-            else if(isRunning)
-                characterController.Move(moveDir.normalized * speed * speedModifier * Time.deltaTime);
-        }    
+
+
     }
+
+    private void FixedUpdate()
+    {        
+        if (!isReady) return;
+
+        if (IsLocalPlayer)
+        {
+            MovePlayer();
+        }
+    }
+
+    private void OnDrawGizmos()
+    {
+            Gizmos.DrawSphere(transform.position + Vector3.up * 0.1f, groundCheckDistance);
+        
+    }
+    void MovePlayer()
+    {
+        isGrounded = Physics.CheckSphere(transform.position + Vector3.up * 0.1f, groundCheckDistance, groundLayer);
+       
+        if (isGrounded)
+        {
+            animator.SetBool("IsGrounded", true);
+            animator.SetBool("IsJumping", false);
+            isJumping = false;         
+            animator.SetBool("IsFalling", false);
+
+            ySpeed = 0;
+        }
+        else
+        {
+
+            characterController.stepOffset = 0;
+            animator.SetBool("IsGrounded", false);
+           
+
+            if (isJumping && moveDir.y < 0 || moveDir.y < -2)
+            {
+                animator.SetBool("IsFalling", true);
+            }
+
+            ySpeed -= gravityScale * Time.deltaTime;
+        }
+
+        moveDir.y = ySpeed;
+        characterController.Move(moveDir * Time.deltaTime);
+
+    }
+
 
     void AllowAttacks()
     {
@@ -271,10 +338,13 @@ public class PlayerNetwork : NetworkBehaviour
             attackTimer = 0;
             comboIndex = 0;
             comboActive = false;
+            animator.SetInteger("ComboIndex", comboIndex);
         }
 
-        if (attack.WasPressedThisFrame())
+        if (move.ReadValue<Vector2>().y > .1f && attack.WasPressedThisFrame())
         {
+            animator.SetInteger("AttackIndex", 1);
+
             comboActive = true;
 
             if (attackTimer >= comboTime || comboIndex >= 3)
@@ -285,33 +355,51 @@ public class PlayerNetwork : NetworkBehaviour
             }
 
             if (attackTimer <= comboTime)
+            {
+                animator.SetTrigger("Attack");
+                animator.SetInteger("ComboIndex", comboIndex);
                 comboIndex++;
-
-            if (comboIndex == 1)
-            {
-                StartCoroutine(EnableLimb(leftArm));
-            }
-            if (comboIndex == 2)
-            {
-                StartCoroutine(EnableLimb(rightArm));
-            }
-            if (comboIndex == 3)
-            {
-                StartCoroutine(EnableLimb(rightLeg));
             }
         }
-
-        if (move.ReadValue<Vector2>().y > .1f && attack.WasPressedThisFrame())
-        { 
-           StartCoroutine(EnableCollider(highAttackCollider));
-        }
-        else if (move.WasPressedThisFrame() && attack.WasPressedThisFrame())
+        else if (move.ReadValue<Vector2>().y < -.1f && attack.WasPressedThisFrame())
         {
-           StartCoroutine(EnableCollider(lowAttackCollider));
+            comboActive = true;
+
+            animator.SetInteger("AttackIndex", 2);
+            if (attackTimer >= comboTime || comboIndex >= 3)
+            {
+                attackTimer = 0;
+                comboIndex = 0;
+                comboActive = false;
+            }
+
+            if (attackTimer <= comboTime)
+            {
+                animator.SetTrigger("Attack");
+                animator.SetInteger("ComboIndex", comboIndex);
+                comboIndex++;
+            }
         }
         else if (attack.WasPressedThisFrame())
         {
-          StartCoroutine(EnableCollider(medAttackCollider));
+
+            animator.SetInteger("AttackIndex", 0);
+
+            comboActive = true;
+
+            if (attackTimer >= comboTime || comboIndex >= 3)
+            {
+                attackTimer = 0;
+                comboIndex = 0;
+                comboActive = false;
+            }
+
+            if (attackTimer <= comboTime)
+            {
+                animator.SetTrigger("Attack");
+                animator.SetInteger("ComboIndex", comboIndex);
+                comboIndex++;
+            }
         }
 
 
@@ -357,9 +445,32 @@ public class PlayerNetwork : NetworkBehaviour
 
     void AllowEvades()
     {
-        if(forwardEvade.WasPressedThisFrame())
+        if (forwardEvade.WasPressedThisFrame())
         {
-            if(!isEnteringForwardEvade && forwardEvadeTimer < evadeTime)
+            //If isentering other evades is true turn them off.
+            if(isEnteringLeftEvade)
+            {
+                isEnteringLeftEvade = false;
+                leftEvadeTimer = 0;
+                evadeIndex = 0;
+            }
+            if(isEnteringRightEvade)
+            {
+                isEnteringRightEvade = false;
+                rightEvadeTimer = 0;
+                evadeIndex = 0;
+            }
+            if (isEnteringBackEvade)
+            {
+                isEnteringBackEvade = false;
+                backEvadeTimer = 0;
+                evadeIndex = 0;
+            }
+
+
+
+
+            if (!isEnteringForwardEvade && forwardEvadeTimer < evadeTime)
             {
                 isEnteringForwardEvade = true;
                 evadeIndex++;
@@ -369,17 +480,44 @@ public class PlayerNetwork : NetworkBehaviour
                 evadeIndex++;
             }
 
-            if(forwardEvadeTimer < evadeTime && evadeIndex == 2)
+            if (forwardEvadeTimer < evadeTime && evadeIndex == 2)
             {
                 evadeIndex = 0;
                 isEnteringForwardEvade = false;
-                forwardEvadeTimer = 0;               
-            EvadeForward();
+                forwardEvadeTimer = 0;
+                EvadeForward();
             }
         }
-       else if (backEvade.WasPressedThisFrame())
+
+        else if (backEvade.WasPressedThisFrame())
         {
-            if(!isEnteringBackEvade && backEvadeTimer < evadeTime)
+            //If isentering other evades is true turn them off.
+            if (isEnteringLeftEvade)
+            {
+                isEnteringLeftEvade = false;
+                leftEvadeTimer = 0;
+                evadeIndex = 0;
+            }
+            if (isEnteringRightEvade)
+            {
+                isEnteringRightEvade = false;
+                rightEvadeTimer = 0;
+                evadeIndex = 0;
+            }
+            if (isEnteringForwardEvade)
+            {
+                isEnteringForwardEvade = false;
+                forwardEvadeTimer = 0;
+                evadeIndex = 0;
+            }
+
+
+
+
+
+
+
+            if (!isEnteringBackEvade && backEvadeTimer < evadeTime)
             {
                 isEnteringBackEvade = true;
                 evadeIndex++;
@@ -389,39 +527,90 @@ public class PlayerNetwork : NetworkBehaviour
                 evadeIndex++;
             }
 
-            if(backEvadeTimer < evadeTime && evadeIndex == 2)
+            if (backEvadeTimer < evadeTime && evadeIndex == 2)
             {
                 evadeIndex = 0;
                 isEnteringBackEvade = false;
                 backEvadeTimer = 0;
 
-            EvadeBack();
+                EvadeBack();
             }
         }
-        else if(leftEvade.WasPressedThisFrame())
+        else if (leftEvade.WasPressedThisFrame())
         {
+            //If isentering other evades is true turn them off.
+            if (isEnteringForwardEvade)
+            {
+                isEnteringForwardEvade = false;
+                forwardEvadeTimer = 0;
+                evadeIndex = 0;
+            }
+            if (isEnteringBackEvade)
+            {
+                isEnteringBackEvade = false;
+                backEvadeTimer = 0;
+                evadeIndex = 0;
+            }
+            if (isEnteringRightEvade)
+            {
+                isEnteringRightEvade = false;
+                rightEvadeTimer = 0;
+                evadeIndex = 0;
+            }
+
+
+
+
+
+
             if (!isEnteringLeftEvade && leftEvadeTimer < evadeTime)
             {
                 isEnteringLeftEvade = true;
                 evadeIndex++;
             }
-           else if (isEnteringLeftEvade)
+            else if (isEnteringLeftEvade)
             {
                 evadeIndex++;
             }
 
-            if(leftEvadeTimer < evadeTime && evadeIndex == 2)
+            if (leftEvadeTimer < evadeTime && evadeIndex == 2)
             {
                 evadeIndex = 0;
                 isEnteringLeftEvade = false;
                 leftEvadeTimer = 0;
-            Debug.Log("Left evade");
-            EvadeLeft();
+                Debug.Log("Left evade");
+                EvadeLeft();
             }
         }
-        else if(rightEvade.WasPressedThisFrame())
+        else if (rightEvade.WasPressedThisFrame())
         {
-            if(!isEnteringRightEvade && rightEvadeTimer < evadeTime)
+            //If isentering other evades is true turn them off.
+            if (isEnteringLeftEvade)
+            {
+                isEnteringLeftEvade = false;
+                leftEvadeTimer = 0;
+                evadeIndex = 0;
+            }
+            if (isEnteringForwardEvade)
+            {
+                isEnteringForwardEvade = false;
+                forwardEvadeTimer = 0;
+                evadeIndex = 0;
+            }
+            if (isEnteringBackEvade)
+            {
+                isEnteringBackEvade = false;
+                backEvadeTimer = 0;
+                evadeIndex = 0;
+            }
+
+
+
+
+
+
+
+            if (!isEnteringRightEvade && rightEvadeTimer < evadeTime)
             {
                 isEnteringRightEvade = true;
                 evadeIndex++;
@@ -431,13 +620,13 @@ public class PlayerNetwork : NetworkBehaviour
                 evadeIndex++;
             }
 
-            if(rightEvadeTimer < evadeTime && evadeIndex == 2)
+            if (rightEvadeTimer < evadeTime && evadeIndex == 2)
             {
                 evadeIndex = 0;
                 isEnteringRightEvade = false;
                 rightEvadeTimer = 0;
-            Debug.Log("Right evade");
-            EvadeRight();
+                Debug.Log("Right evade");
+                EvadeRight();
             }
         }
     }
@@ -450,12 +639,12 @@ public class PlayerNetwork : NetworkBehaviour
         // Rotate movement direction based on camera
         if (direction.magnitude >= 0.1f)
         {
-        Debug.Log("Evaded forward"); 
+            Debug.Log("Evaded forward"); 
             float targetAngle = Mathf.Atan2(direction.x, direction.z) * Mathf.Rad2Deg + camera.eulerAngles.y;
             float angle = Mathf.SmoothDampAngle(transform.eulerAngles.y, targetAngle, ref turnSmoothVelocity, turnSmoothTime);
 
             Vector3 moveDir = Quaternion.Euler(0f, targetAngle, 0f) * Vector3.forward;
-            moveDir += Physics.gravity;
+           // moveDir += Physics.gravity;
             characterController.Move(moveDir.normalized * evadeDistance * speed * Time.deltaTime);
         }
     }
@@ -471,7 +660,7 @@ public class PlayerNetwork : NetworkBehaviour
             Debug.Log("Evaded Back");
    
             Vector3 moveDir = -transform.forward;
-            moveDir += Physics.gravity;
+           // moveDir += Physics.gravity;
             characterController.Move(moveDir.normalized * evadeDistance * speed * Time.deltaTime);
         }
     }
@@ -486,7 +675,7 @@ public class PlayerNetwork : NetworkBehaviour
             Debug.Log("Evaded Left");
 
             Vector3 moveDir = -transform.right;
-            moveDir += Physics.gravity;
+          //  moveDir += Physics.gravity;
             characterController.Move(moveDir.normalized * evadeDistance * speed * Time.deltaTime);
         }
     }
@@ -502,7 +691,7 @@ public class PlayerNetwork : NetworkBehaviour
             Debug.Log("Evaded Right");
 
             Vector3 moveDir = transform.right;
-            moveDir += Physics.gravity;
+          //  moveDir += Physics.gravity;
             characterController.Move(moveDir.normalized * evadeDistance * speed * Time.deltaTime);
         }
     }

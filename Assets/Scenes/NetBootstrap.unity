@@ -294,6 +294,7 @@ MonoBehaviour:
   enemyPrefab: {fileID: 9147568737756869487, guid: 67e37a3e92bef6945a5042cb1b9ae2cc, type: 3}
   countDownTimer: 0
   readyTime: 0
+  enemySpawnPoints: []
 --- !u!4 &735728866
 Transform:
   m_ObjectHideFlags: 0
@@ -389,7 +390,7 @@ MonoBehaviour:
   NetworkConfig:
     ProtocolVersion: 0
     NetworkTransport: {fileID: 858165443}
-    PlayerPrefab: {fileID: 7450098805861797245, guid: ad27045e052ecfe49926e4ac1300d074, type: 3}
+    PlayerPrefab: {fileID: 2045445445131070774, guid: 4b1c271b34c5ba84e986a19cd83a90d2, type: 3}
     Prefabs:
       NetworkPrefabsLists:
       - {fileID: 11400000, guid: b12f38d854e964f47b331ee6c3a562dd, type: 2}
