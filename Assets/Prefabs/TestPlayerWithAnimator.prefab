@@ -1281,7 +1281,7 @@ MonoBehaviour:
   speed: 6
   gravityScale: 9.8
   speedModifier: 2
-  jumpPower: 10
+  jumpPower: 5
   ySpeed: 0
   isRunning: 0
   groundCheckDistance: 0.2

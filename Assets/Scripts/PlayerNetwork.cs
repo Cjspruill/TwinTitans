@@ -296,7 +296,7 @@ public class PlayerNetwork : NetworkBehaviour
     }
     void MovePlayer()
     {
-        isGrounded = Physics.CheckSphere(transform.position + Vector3.up * 0.1f, groundCheckDistance, groundLayer);
+        isGrounded = characterController.isGrounded;  //  Physics.CheckSphere(transform.position + Vector3.up * 0.1f, groundCheckDistance, groundLayer);
        
         if (isGrounded)
         {
